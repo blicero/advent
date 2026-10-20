@@ -2,7 +2,7 @@
 // -*- mode: go; coding: utf-8; -*-
 // Created on 31. 08. 2026 by Benjamin Walkenhorst
 // (c) 2026 Benjamin Walkenhorst
-// Time-stamp: <2026-10-05 09:35:13 krylon>
+// Time-stamp: <2026-10-19 08:06:11 krylon>
 
 package common
 
@@ -22,7 +22,7 @@ import (
 	"github.com/blicero/krylib"
 	"github.com/hashicorp/logutils"
 
-	"github.com/blicero/jazz/logdomain"
+	"github.com/blicero/advent/logdomain"
 )
 
 //go:generate ./build_time_stamp.pl

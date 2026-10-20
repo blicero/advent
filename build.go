@@ -1,8 +1,8 @@
-// /home/krylon/go/src/github.com/blicero/jazz/build.go
+// /home/krylon/go/src/github.com/blicero/advent/build.go
 // -*- mode: go; coding: utf-8; -*-
 // Created on 01. 02. 2021 by Benjamin Walkenhorst
 // (c) 2021 Benjamin Walkenhorst
-// Time-stamp: <2026-10-18 11:10:09 krylon>
+// Time-stamp: <2026-10-20 18:35:02 krylon>
 
 //go:build ignore
 
@@ -64,16 +64,24 @@ var candidates = map[string][]string{
 	"vet": {
 		"logdomain",
 		"common",
+		"prompt",
+		"engine",
 	},
 	"lint": {
 		"logdomain",
 		"common",
+		"prompt",
+		"engine",
 	},
 	"nilaway": {
 		"logdomain",
 		"common",
+		"prompt",
+		"engine",
 	},
-	"test": {},
+	"test": {
+		"engine",
+	},
 }
 
 // During the clean step, all files and folders that match any of these
@@ -223,7 +231,7 @@ This flag is not case-sensitive.`, strings.Join(orderedSteps, ", ")))
 	if steps["build"] {
 		var output []byte
 
-		dbg.Println("[INFO] Building Jazz...")
+		dbg.Printf("[INFO] Building %s...\n", AppName)
 
 		// Put aside a possibly existing binary
 		if err = backupExecutable(); err != nil {
@@ -243,7 +251,8 @@ This flag is not case-sensitive.`, strings.Join(orderedSteps, ", ")))
 		}
 		var cmd = exec.Command("go", args...)
 		if output, err = cmd.CombinedOutput(); err != nil {
-			dbg.Printf("[ERROR] Error building Jazz: %s\n%s\n",
+			dbg.Printf("[ERROR] Error building %s: %s\n%s\n",
+				AppName,
 				err.Error(),
 				output)
 			os.Exit(1)
@@ -354,7 +363,7 @@ func worker(n int, op string, pkgq <-chan string, errq chan<- error, wg *sync.Wa
 	defer wg.Done()
 
 	for folder := range pkgq {
-		pkg = "github.com/blicero/jazz/" + folder
+		pkg = "github.com/blicero/advent/" + folder
 		dbg.Printf("[TRACE] Worker %d call %s on %s\n",
 			n,
 			op,
@@ -452,7 +461,7 @@ func initLog(min string) error {
 		writer io.Writer
 		// Trailing space because Logger does not seem to insert one
 		// between fields of the line.
-		logName = "Jazz.build "
+		logName = fmt.Sprintf("%s.build ", AppName)
 	)
 
 	// fmt.Printf("Creating Logger with minLevel = %q\n",
