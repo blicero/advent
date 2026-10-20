@@ -1,5 +1,5 @@
 # -*- mode: org; fill-column: 78; -*-
-# Time-stamp: <2026-10-18 11:06:38 krylon>
+# Time-stamp: <2026-10-20 18:33:21 krylon>
 #
 #+TAGS: internals(i) ui(u) bug(b) feature(f)
 #+TAGS: database(d) design(e), meditation(m)
@@ -16,20 +16,35 @@
   A simple attempt at building a text adventure.
 ** Clocktable
    #+BEGIN: clocktable :scope file :maxlevel 255 :emphasize t
-   #+CAPTION: Clock summary at [2026-10-18 So 11:05]
-   | Headline     | Time   |
-   |--------------+--------|
-   | *Total time* | *0:00* |
+   #+CAPTION: Clock summary at [2026-10-20 Di 18:33]
+   | Headline                     | Time   |        |      |      |
+   |------------------------------+--------+--------+------+------|
+   | *Total time*                 | *6:03* |        |      |      |
+   |------------------------------+--------+--------+------+------|
+   | *Advent [0/0]*               | *6:03* |        |      |      |
+   | \_  /Components [0/0]/       |        | /6:03/ |      |      |
+   | \_    Model [0/1]            |        |        | 2:04 |      |
+   | \_      Generate World [0/0] |        |        |      | 2:04 |
+   | \_    Lua Engine [0/0]       |        |        | 0:47 |      |
+   | \_    Prompt [0/0]           |        |        | 3:12 |      |
    #+END:
 ** Components [0/0]
    :PROPERTIES:
    :COOKIE_DATA: todo recursive
    :VISIBILITY: all
    :END:
-*** Model [0/0]
+*** Model [0/1]
     :PROPERTIES:
     :COOKIE_DATA: todo recursive
     :VISIBILITY: all
+    :END:
+**** TODO Generate World [0/0]
+     :LOGBOOK:
+     CLOCK: [2026-10-20 Di 06:39]--[2026-10-20 Di 08:43] =>  2:04
+     :END:
+*** Lua Engine [0/0]
+    :LOGBOOK:
+    CLOCK: [2026-10-20 Di 17:46]--[2026-10-20 Di 18:33] =>  0:47
     :END:
 *** Parser [0/0]
     :PROPERTIES:
@@ -40,6 +55,10 @@
     :PROPERTIES:
     :COOKIE_DATA: todo recursive
     :VISIBILITY: all
+    :END:
+    :LOGBOOK:
+    CLOCK: [2026-10-19 Mo 08:02]--[2026-10-19 Mo 10:41] =>  2:39
+    CLOCK: [2026-10-18 So 12:27]--[2026-10-18 So 13:00] =>  0:33
     :END:
 *** World [0/0]
     :PROPERTIES:
