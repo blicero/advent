@@ -2,12 +2,13 @@
 // -*- mode: go; coding: utf-8; -*-
 // Created on 20. 10. 2026 by Benjamin Walkenhorst
 // (c) 2026 Benjamin Walkenhorst
-// Time-stamp: <2026-10-21 16:26:26 krylon>
+// Time-stamp: <2026-10-21 18:41:20 krylon>
 
 // Package engine provides bindings to the Lua engine.
 package engine
 
 import (
+	"embed"
 	"errors"
 	"fmt"
 	"log"
@@ -22,6 +23,9 @@ import (
 	"github.com/blicero/krylib"
 	"github.com/davecgh/go-spew/spew"
 )
+
+//go:embed lib
+var lualib embed.FS
 
 // Engine wraps the Lua VM and associated state.
 type Engine struct {
