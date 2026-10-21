@@ -2,7 +2,7 @@
 // -*- mode: go; coding: utf-8; -*-
 // Created on 20. 10. 2026 by Benjamin Walkenhorst
 // (c) 2026 Benjamin Walkenhorst
-// Time-stamp: <2026-10-20 18:12:48 krylon>
+// Time-stamp: <2026-10-21 16:26:26 krylon>
 
 // Package engine provides bindings to the Lua engine.
 package engine
@@ -26,7 +26,7 @@ import (
 // Engine wraps the Lua VM and associated state.
 type Engine struct {
 	log           *log.Logger
-	luaLog        *log.Logger // nolint: megacheck,structcheck
+	luaLog        *log.Logger // nolint: megacheck,structcheck,unused
 	State         *lua.State
 	LookupFolders []string
 	Script        string
@@ -45,6 +45,10 @@ func NewEngine(includeDir ...string) (*Engine, error) {
 
 	if eng.log, err = common.GetLogger(logdomain.Lua); err != nil {
 		return nil, err
+	} else if err = eng.initialize(); err != nil {
+		eng.log.Printf("[CRITICAL] Failed to initialize Lua engine: %s\n",
+			err.Error())
+		return nil, err
 	}
 
 	return eng, nil
@@ -54,6 +58,60 @@ func (eng *Engine) initialize() error {
 	lua.OpenLibraries(eng.State)
 	eng.State.PushBoolean(common.Debug)
 	eng.State.SetGlobal("DEBUG")
+
+	// Regular expressions are likely to be useful:
+	var reModule = []lua.RegistryFunction{
+		lua.RegistryFunction{
+			Name:     "compile",
+			Function: regexCompile,
+		},
+	}
+
+	lua.NewLibrary(eng.State, reModule)
+	eng.State.SetGlobal("regexp")
+
+	var reMeta = []lua.RegistryFunction{
+		lua.RegistryFunction{
+			Name:     "find",
+			Function: regexFind,
+		},
+		lua.RegistryFunction{
+			Name:     "match",
+			Function: regexMatch,
+		},
+		lua.RegistryFunction{
+			Name:     "replace",
+			Function: regexReplace,
+		},
+	}
+
+	_ = lua.NewMetaTable(eng.State, "re_meta")
+	lua.SetFunctions(eng.State, reMeta, 0)
+	eng.State.PushValue(-1)
+	eng.State.SetField(-2, "__index")
+
+	var logModule = make([]lua.RegistryFunction, len(common.LogLevels))
+
+	for idx, lvl := range common.LogLevels {
+		lname := strings.ToLower(string(lvl))
+		logModule[idx] = lua.RegistryFunction{
+			Name: lname,
+			Function: func(state *lua.State) int {
+				state.PushString(lname)
+				state.Insert(1)
+
+				return luaLog(state)
+			},
+		}
+	}
+
+	lua.NewLibrary(eng.State, logModule)
+	eng.State.SetGlobal("log")
+
+	// Maybe I should put the include* functions into a module?
+	eng.State.Register("include", eng.luaIncludeFile)
+	eng.State.Register("includedir", eng.luaIncludeDir)
+	eng.State.Register("add_includedir", eng.luaIncludeDirAdd)
 
 	return nil
 } // func (eng *ScriptEngine) initialize() error
@@ -74,7 +132,7 @@ func (eng *Engine) AddFunction(name string, fn func(*lua.State) int) error {
 // If meta is a non-empty string, it is taken as the name of the metatable
 // to associate with the value.
 // nolint: gocyclo
-func (eng *Engine) PushGoValue(val interface{}, meta string) error {
+func (eng *Engine) PushGoValue(val any, meta string) error {
 	if val == nil {
 		// This is a special case, insofar as "nil" can be nil of many
 		// types in Go, in Lua, it does not matter, or rather nil is its
@@ -135,18 +193,18 @@ func (eng *Engine) PushGoValue(val interface{}, meta string) error {
 	}
 
 	return nil
-} // func (eng *Engine) PushGoValue(val interface{}, meta string) error
+} // func (eng *Engine) PushGoValue(val any, meta string) error
 
 // SetGlobalValue pushes a value on the Lua stack and, if successful,
 // registers it as a global under the given name.
-func (eng *Engine) SetGlobalValue(name string, val interface{}, meta string) error {
+func (eng *Engine) SetGlobalValue(name string, val any, meta string) error {
 	if err := eng.PushGoValue(val, meta); err != nil {
 		return err
 	}
 
 	eng.State.SetGlobal(name)
 	return nil
-} // func (eng *Engine) SetGlobalValue(name string, val interface{}) error
+} // func (eng *Engine) SetGlobalValue(name string, val any) error
 
 // Run executes the the engine's Script.
 func (eng *Engine) Run() error {
@@ -182,7 +240,7 @@ func (eng *Engine) Run() error {
 		return errors.New(msg)
 	} else if retVal = eng.State.ToBoolean(1); !retVal && top < 2 {
 		eng.Dumpstack()
-		msg = "Lua script returned false, but no error message"
+		msg = "lua script returned false, but no error message"
 		eng.log.Println("[ERROR] " + msg)
 		return errors.New(msg)
 	} else if retVal {
@@ -200,7 +258,7 @@ func (eng *Engine) Run() error {
 	return errors.New(errmsg)
 } // func (eng *Engine) Run() error
 
-// nolint: gocyclo
+// nolint: gocyclo,unused
 func (eng *Engine) luaIncludeDir(state *lua.State) int {
 	var err error
 	var path, msg string
@@ -322,6 +380,7 @@ PROCESS_FOLDER:
 	return 1
 } // func (eng *Engine) luaIncludeDir(state *lua.State) int
 
+// nolint: unused
 func (eng *Engine) luaIncludeFile(state *lua.State) int {
 	var err error
 	var path, msg string
@@ -407,6 +466,7 @@ func (eng *Engine) luaIncludeFile(state *lua.State) int {
 // to basically invoke this function. ???
 // However, if I do that, I need to take care handling the table...
 // ... ??? I'll have to sleep on that, I guess.
+// nolint: unused
 func (eng *Engine) luaIncludeDirAdd(state *lua.State) int {
 	var err error
 	var msg string
@@ -488,6 +548,7 @@ func (eng *Engine) Dumpstack() {
 // In dem Fall ist LogLevel an Position 1 auf dem Stack (der "untersten" quasi),
 // dann FormatString auf Position 2, und alles darüber sind dann die
 // Werte, die formatiert werden sollen.
+// nolint: unused
 func luaLog(state *lua.State) int {
 	var lvl, fmtString, msg string
 	var cnt int
@@ -524,7 +585,7 @@ func luaLog(state *lua.State) int {
 	// and pass that to fmt.Sprintf.
 	// Mmmh, that is not going to be entirely trivial, now, is it?
 
-	var args = make([]interface{}, cnt-2)
+	var args = make([]any, cnt-2)
 
 	for i := 0; i < cnt-2; i++ {
 		args[i] = state.ToValue(i + 2)
@@ -543,6 +604,7 @@ func luaLog(state *lua.State) int {
 // Utility functions  /////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 
+// nolint: unused
 func isValidLogLevel(lvl string) bool {
 	// This is a little bit brute-force, but I think the number of
 	// log levels is so small, it won't hurt too much.

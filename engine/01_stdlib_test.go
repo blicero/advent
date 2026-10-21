@@ -2,7 +2,7 @@
 // -*- mode: go; coding: utf-8; -*-
 // Created on 20. 10. 2026 by Benjamin Walkenhorst
 // (c) 2026 Benjamin Walkenhorst
-// Time-stamp: <2026-10-20 18:20:15 krylon>
+// Time-stamp: <2026-10-21 16:25:26 krylon>
 //
 // This file is the test suite for the "standard library" I provide to the
 // Lua engine. It could do with some cleaning up, the test scripts write to
@@ -32,6 +32,8 @@
 package engine
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -104,6 +106,7 @@ return true
 `
 
 // TODO - add test cases for the time interface
+// nolint: unused
 const luaTimeTestScript = `
 -- BW, 20160829_2009
 
@@ -162,6 +165,9 @@ func TestCreateEngine(t *testing.T) {
 } // func TestCreateEngine(t *testing.T)
 
 func TestRegexBinding(t *testing.T) {
+	if eng == nil {
+		t.SkipNow()
+	}
 	var err error
 	eng.Script = luaRegexTestScript
 
@@ -174,6 +180,10 @@ func TestRegexBinding(t *testing.T) {
 
 // nolint: gocyclo
 func TestSetGlobal(t *testing.T) {
+	if eng == nil {
+		t.SkipNow()
+	}
+
 	// Donnerstag, 10. 08. 2017, 20:24
 	// I should add one more test for (light)userdata?
 	// But then I need a way to conveniently set
@@ -270,6 +280,10 @@ return true
 } // func TestSetGlobal(t *testing.T)
 
 func TestLuaScriptReturnValues(t *testing.T) {
+	if eng == nil {
+		t.SkipNow()
+	}
+
 	var err error
 
 	// In order to test the behavior of eng.Run when dealing
@@ -291,7 +305,7 @@ func TestLuaScriptReturnValues(t *testing.T) {
 	eng.Script = "return false"
 	if err = eng.Run(); err == nil {
 		t.Error("Expected an error value from eng.Run")
-	} else if err.Error() != "Lua script returned false, but no error message" {
+	} else if err.Error() != "lua script returned false, but no error message" {
 		// This return value is a hard coded constant in the source code.
 		t.Errorf("Unexpected error message from LuaEngine: %s",
 			err.Error())
@@ -299,7 +313,100 @@ func TestLuaScriptReturnValues(t *testing.T) {
 
 } // func TestLuaReturnFalse(t *testing.T)
 
+func TestLuaLogModule(t *testing.T) {
+	if eng == nil {
+		t.SkipNow()
+	}
+	var err error
+	const luaLogScript = `
+if log == nil then
+    return false, "Log module is nil"
+end
+
+for k, v in pairs(log) do
+  print("==> " .. k)
+end
+
+return true
+
+`
+
+	eng.State.SetTop(0)
+
+	eng.Script = luaLogScript
+	if err = eng.Run(); err != nil {
+		t.Error(err.Error())
+	}
+} // func TestLuaLogModule(t *testing.T)
+
+func TestLuaIncludeFile(t *testing.T) {
+	if eng == nil {
+		t.SkipNow()
+	}
+
+	var err error
+	eng.State.SetTop(0)
+
+	eng.Script = `
+return include("tst01.lua")
+`
+
+	// So far, we have not set an include path, so this call should fail
+	if err = eng.Run(); err == nil {
+		t.Error("Include without setting an inlude path should fail")
+	} else {
+		eng.State.SetTop(0)
+	}
+
+	var cwd string
+
+	if cwd, err = os.Getwd(); err != nil {
+		t.Fatalf("Error getting working directory: %s",
+			err.Error())
+	}
+
+	eng.LookupFolders = []string{
+		filepath.Join(cwd, "testdata"),
+	}
+
+	if err = eng.Run(); err != nil {
+		t.Fatalf("Error including tst01.lua: %s",
+			err.Error())
+	}
+
+	var num int
+	var str string
+	var ok bool
+
+	eng.State.Global("testvar01")
+	if num, ok = eng.State.ToInteger(-1); !ok {
+		t.Errorf("Global testvar01 should be an integer, not a %s",
+			eng.State.TypeOf(-1).String())
+	} else if num != 100 {
+		t.Errorf("Global testvar01 should equal 100, not %d",
+			num)
+	}
+
+	eng.State.Pop(1)
+
+	eng.State.Global("testvar02")
+	if str, ok = eng.State.ToString(-1); !ok {
+		t.Errorf("Global testvar02 should be a string, not a %s",
+			eng.State.TypeOf(-1).String())
+	} else if str != "Hallo, Zebu!" {
+		t.Errorf("Global testvar02 should be \"Hallo, Zebu!\", not %q",
+			str)
+	}
+
+	eng.State.SetTop(0)
+
+} // func TestLuaIncludeFile(t *testing.T)
+
 func TestIncludeDir(t *testing.T) {
+	if eng == nil {
+		t.SkipNow()
+	}
+
 	var err error
 
 	eng.Script = `
