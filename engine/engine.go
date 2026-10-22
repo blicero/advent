@@ -2,7 +2,7 @@
 // -*- mode: go; coding: utf-8; -*-
 // Created on 20. 10. 2026 by Benjamin Walkenhorst
 // (c) 2026 Benjamin Walkenhorst
-// Time-stamp: <2026-10-21 18:41:20 krylon>
+// Time-stamp: <2026-10-22 07:54:51 krylon>
 
 // Package engine provides bindings to the Lua engine.
 package engine
@@ -11,6 +11,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -59,6 +60,8 @@ func NewEngine(includeDir ...string) (*Engine, error) {
 } // func NewEngine(includeDir ...string) (*Engine, error)
 
 func (eng *Engine) initialize() error {
+	var err error
+
 	lua.OpenLibraries(eng.State)
 	eng.State.PushBoolean(common.Debug)
 	eng.State.SetGlobal("DEBUG")
@@ -116,6 +119,34 @@ func (eng *Engine) initialize() error {
 	eng.State.Register("include", eng.luaIncludeFile)
 	eng.State.Register("includedir", eng.luaIncludeDir)
 	eng.State.Register("add_includedir", eng.luaIncludeDirAdd)
+
+	var lib []fs.DirEntry
+
+	if lib, err = lualib.ReadDir("."); err != nil {
+		eng.log.Printf("[ERROR] Failed to read embedded libraries: %s\n",
+			err.Error())
+		return err
+	}
+
+	for _, file := range lib {
+		var (
+			content []byte
+		)
+
+		if !strings.HasSuffix(file.Name(), ".lua") {
+			continue
+		} else if content, err = lualib.ReadFile(file.Name()); err != nil {
+			eng.log.Printf("[ERROR] Failed to read library %s: %s\n",
+				file.Name(),
+				err.Error())
+			return err
+		} else if err = lua.DoString(eng.State, string(content)); err != nil {
+			eng.log.Printf("[ERROR] Failed to parse library %s: %s\n",
+				file.Name(),
+				err.Error())
+			return err
+		}
+	}
 
 	return nil
 } // func (eng *ScriptEngine) initialize() error

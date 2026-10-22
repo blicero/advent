@@ -1,5 +1,5 @@
 #!/usr/bin/env lua
--- Time-stamp: <2026-10-21 18:40:24 krylon>
+-- Time-stamp: <2026-10-22 07:48:05 krylon>
 --
 -- /media/disk/lua/util.lua
 -- created on 06. 09. 2008
@@ -10,7 +10,7 @@ module("krylib", package.seeall)
 --- A collection of general-purpose functions
 --- @author Benjamin Walkenhorst (krylon (at) gmx (dot) net)
 
-require("posix")
+-- require("posix")
 
 --- Return true if key is present in tab
 --- @param tab A table
@@ -338,29 +338,29 @@ function, STD(OUT|ERR|IN) will be reopened on /dev/null.
 
 --- Daemonize the current process.
 --- NOT FINISHED!
-function daemonize()
-   -- Freitag, 10. 06. 2011, 21:44
-   -- Ich hoffe, ich habe die Syntax richtig hin bekommen...
-   posix.chmod("u=rwx g=rx a=rx") -- Step 1
+-- function daemonize()
+--    -- Freitag, 10. 06. 2011, 21:44
+--    -- Ich hoffe, ich habe die Syntax richtig hin bekommen...
+--    posix.chmod("u=rwx g=rx a=rx") -- Step 1
 
-   local pid = posix.fork()
-   if pid == -1 then -- Something went horribly wrong!
-      error(string.format("Error forking process: %s", posix.errno()))
-   elseif pid == 0 then -- Child process
-      -- do nothing
-   else -- Parent process
-      os.exit(0)
-   end
+--    local pid = posix.fork()
+--    if pid == -1 then -- Something went horribly wrong!
+--       error(string.format("Error forking process: %s", posix.errno()))
+--    elseif pid == 0 then -- Child process
+--       -- do nothing
+--    else -- Parent process
+--       os.exit(0)
+--    end
 
-   -- Dabei kann doch nun wirklich nichts schief gehen, oder?
-   posix.chdir("/")
+--    -- Dabei kann doch nun wirklich nichts schief gehen, oder?
+--    posix.chdir("/")
 
-   -- Lua has no setsid() bindings
+--    -- Lua has no setsid() bindings
 
-   -- How do we know about unnecessary file descriptors?
+--    -- How do we know about unnecessary file descriptors?
 
-   -- Close STD*
-end -- function daemonize()
+--    -- Close STD*
+-- end -- function daemonize()
 
 --- Expand ~ in the given string to user's home directory, i.e. if the current
 --- user's home directory was /home/krylon, then ~/.emacs.d/init.el becomes
@@ -468,26 +468,26 @@ function average(tbl)
    return sum / cnt
 end -- function average(tbl)
 
-function is_file(path)
-   local status, msg = posix.access(path, "f")
-   if nil == status then
-      return false
-   elseif 0 == status then
-      return true
-   else
-      printf("Unexpected return value from posix.access: %s", tostring(status))
-      return false
-   end
-end -- function is_file(path)
+-- function is_file(path)
+--    local status, msg = posix.access(path, "f")
+--    if nil == status then
+--       return false
+--    elseif 0 == status then
+--       return true
+--    else
+--       printf("Unexpected return value from posix.access: %s", tostring(status))
+--       return false
+--    end
+-- end -- function is_file(path)
 
-function isdir(path)
-   local status, msg = posix.stat(path, "type")
-   if nil == status then
-      return nil, string.format("Could not stat %s: %s", path, msg)
-   else
-      return status == "directory"
-   end
-end -- function isdir(path)
+-- function isdir(path)
+--    local status, msg = posix.stat(path, "type")
+--    if nil == status then
+--       return nil, string.format("Could not stat %s: %s", path, msg)
+--    else
+--       return status == "directory"
+--    end
+-- end -- function isdir(path)
 
 function path_join(root, suffix)
    local SEP = "/"
