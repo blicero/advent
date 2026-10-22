@@ -1,5 +1,5 @@
 # -*- mode: org; fill-column: 78; -*-
-# Time-stamp: <2026-10-21 18:43:13 krylon>
+# Time-stamp: <2026-10-22 07:55:50 krylon>
 #
 #+TAGS: internals(i) ui(u) bug(b) feature(f)
 #+TAGS: database(d) design(e), meditation(m)
@@ -16,16 +16,16 @@
   A simple attempt at building a text adventure.
 ** Clocktable
    #+BEGIN: clocktable :scope file :maxlevel 255 :emphasize t
-   #+CAPTION: Clock summary at [2026-10-21 Mi 18:43]
+   #+CAPTION: Clock summary at [2026-10-22 Do 07:55]
    | Headline                     | Time   |        |      |      |
    |------------------------------+--------+--------+------+------|
-   | *Total time*                 | *7:38* |        |      |      |
+   | *Total time*                 | *9:27* |        |      |      |
    |------------------------------+--------+--------+------+------|
-   | *Advent [0/0]*               | *7:38* |        |      |      |
-   | \_  /Components [0/0]/       |        | /7:38/ |      |      |
+   | *Advent [0/0]*               | *9:27* |        |      |      |
+   | \_  /Components [0/0]/       |        | /9:27/ |      |      |
    | \_    Model [0/1]            |        |        | 2:04 |      |
    | \_      Generate World [0/0] |        |        |      | 2:04 |
-   | \_    Lua Engine [0/0]       |        |        | 2:22 |      |
+   | \_    Lua Engine [0/0]       |        |        | 4:11 |      |
    | \_    Prompt [0/0]           |        |        | 3:12 |      |
    #+END:
 ** Components [0/0]
@@ -44,6 +44,8 @@
      :END:
 *** Lua Engine [0/0]
     :LOGBOOK:
+    CLOCK: [2026-10-22 Do 07:30]--[2026-10-22 Do 07:55] =>  0:25
+    CLOCK: [2026-10-21 Mi 18:46]--[2026-10-21 Mi 20:10] =>  1:24
     CLOCK: [2026-10-21 Mi 18:13]--[2026-10-21 Mi 18:43] =>  0:30
     CLOCK: [2026-10-21 Mi 15:22]--[2026-10-21 Mi 16:27] =>  1:05
     CLOCK: [2026-10-20 Di 17:46]--[2026-10-20 Di 18:33] =>  0:47
